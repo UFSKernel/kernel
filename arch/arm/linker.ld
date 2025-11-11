@@ -1,27 +1,31 @@
-/* Aqui definimos que o contador de programa deve ir ao _start do startup.S */
 ENTRY(_start)
 
+PHDRS
+{
+    text PT_LOAD FLAGS(5);  /* Segmento de texto: RX */
+    data PT_LOAD FLAGS(6);  /* Segmento de dados: RW */
+}
+
 SECTIONS {
-    . = 0x00010000; /* Esse é o endereço onde o QEMU inicia quando usada a flag -kernel. */
-    
-    /* Definição da ordem das seções. */
+    . = 0x40000000;
+
     .text : {
         KEEP(*(.text.startup))
         *(.text)
         *(.rodata)
-    }
+    } :text /* Atribui esta seção ao segmento 'text' */
+
+    . = ALIGN(4K);
 
     .data : {
-        *(.data) /* Coloca dados inicializados (variáveis globais com valor). */
-    }
-
-    .bss : {
-        *(.bss)  /* Coloca dados não inicializados (onde nossa pilha está). */
-    }
-
-    . = ALIGN(8);
-    . = . + 0x1000; /* Espacinho por segurança. */
+        *(.data)
+        .bss_start = .;
+        *(.bss)
+        .bss_end = .;
+    } :data /* Atribui esta seção ao segmento 'data' */
+    
+    . = . + 0x4000;
     stack_top = .;
-
+    
     end = .;
 }
