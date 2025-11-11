@@ -1,0 +1,10 @@
+# diretório de build
+build/
+
+# arquivos de objeto e dependências gerados
+*.o
+*.d
+
+# executável final
+*.elf
+*.img
