@@ -68,7 +68,7 @@ A contribuição para o kernel segue um fluxo de trabalho padrão baseado em For
     
     Volte para a página do seu fork no GitHub. Um botão para "Compare & pull request" aparecerá. Clique nele, escreva uma descrição clara das suas mudanças e abra o Pull Request para a branch `main` do repositório `UFSKernel/kernel`.
 
-## ⚙️ Automação e Testes (CI)
+## Automação e Testes (CI)
 
 Este repositório utiliza **GitHub Actions** para garantir a integridade do código. Toda vez que um Pull Request é aberto, um workflow automático é executado para:
 1.  Compilar todo o projeto com a flag `-Werror` (warnings são tratados como erros).
@@ -76,6 +76,6 @@ Este repositório utiliza **GitHub Actions** para garantir a integridade do cód
 
 O botão **"Merge" de um Pull Request só será habilitado se todos os testes passarem**. Isso garante que a branch `main` esteja sempre funcional.
 
-## ⚖️ Licença
+## Licença
 
 Este projeto é licenciado sob a **GPLv3**. Veja o arquivo `LICENSE` para mais detalhes.
