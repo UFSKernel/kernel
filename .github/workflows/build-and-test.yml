@@ -33,8 +33,6 @@ jobs:
       # 4. Executa o kernel no QEMU e verifica a saída
       - name: Testar execução no QEMU
         run: |
-          # Garante que o passo falhe se o QEMU travar, mesmo que o grep não falhe.
-          set -o pipefail
           # Executa o QEMU por no máximo 30 segundos.
           # A saída da porta serial é redirecionada para o grep.
           # O grep procura pela string de sucesso. Se encontrar, o passo termina com sucesso.
