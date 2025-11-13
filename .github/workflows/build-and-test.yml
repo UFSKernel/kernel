@@ -1,0 +1,42 @@
+# Nome do workflow
+name: Build e Teste do Kernel
+
+# Gatilhos
+on:
+  # Executa em pushes para a main e em Pull Requests para a main
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Tarefas
+jobs:
+  # Nome do job (este será o nome do "status check" na regra de proteção)
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2. Instala as dependências (toolchain ARM e QEMU)
+      - name: Instalar dependências
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi qemu-system-arm
+
+      # 3. Compila o kernel com warnings tratados como erros
+      - name: Compilar o kernel
+        run: make CFLAGS_EXTRA="-Werror"
+
+      # 4. Executa o kernel no QEMU e verifica a saída
+      - name: Testar execução no QEMU
+        run: |
+          # Garante que o passo falhe se o QEMU travar, mesmo que o grep não falhe.
+          set -o pipefail
+          # Executa o QEMU por no máximo 30 segundos.
+          # A saída da porta serial é redirecionada para o grep.
+          # O grep procura pela string de sucesso. Se encontrar, o passo termina com sucesso.
+          # Se não encontrar (ou se o QEMU travar), o passo falha.
+          timeout 30s qemu-system-arm -M virt -cpu cortex-a15 -nographic -kernel kernel.elf -serial stdio | grep "Bem-vindo ao UFSKernel!"
