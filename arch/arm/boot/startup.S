@@ -24,6 +24,7 @@ _start:
     //   supervisor.
 
     ldr sp, =stack_top // Stack pointer aponta pro rótulo stack_top (definido pelo linker script).
+    bic sp, sp, #7
 
     bl kmain // Pula para onde está o código binário da função kmain, que será linkada.
 
