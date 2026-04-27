@@ -1,0 +1,1 @@
+// Gerencia o array de bits (Bitmap).
