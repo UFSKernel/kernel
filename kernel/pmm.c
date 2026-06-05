@@ -46,3 +46,27 @@ void pmm_alloc_page_at(uintptr_t addr) {
     bitmap.map[idx] |= mask; // faz uma operação de or para setar o bit da mask pra 1
 }
 
+// Funções utilizadas no VMM
+void* pmm_alloc_block() {
+    // 1. Percorre o bitmap procurando por um índice que não esteja totalmente cheio (diferente de 0xFFFFFFFF)
+    for (uint32_t i = 0; i < bitmap.size; i++) {
+        if (bitmap.map[i] != 0xFFFFFFFF) {
+            
+            // 2. Achou um mapa de 32 bits com espaço. Agora acha qual bit específico está em 0
+            for (int bit = 0; bit < 32; bit++) {
+                uint32_t mask = (1 << bit);
+                
+                if (!(bitmap.map[i] & mask)) { // Se o bit for 0 (bloco livre)
+                    bitmap.map[i] |= mask;     // Seta o bit para 1 (marca como alocado)
+                    
+                    // 3. Calcula o endereço físico real baseado no índice e no bit
+                    uint32_t page_frame_number = (i * 32) + bit;
+                    uintptr_t phys_addr = page_frame_number * PAGE_SIZE;
+                    
+                    return (void*)phys_addr; // Retorna o endereço físico do bloco alocado
+                }
+            }
+        }
+    }
+    return NULL; // Sem memória física livre!
+}
