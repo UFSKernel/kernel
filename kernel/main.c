@@ -30,6 +30,5 @@ void kmain(void) {
 
     // Loop eterno para o kernel não morrer
     while(1) {
-        // ...
     }
 }

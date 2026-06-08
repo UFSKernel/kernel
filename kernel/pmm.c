@@ -1,12 +1,12 @@
 // Gerencia o array de bits (Bitmap)
 #include "pmm.h"
 
- extern uint8_t __end[]; // Símbolo vindo do linker script, representa o final do kernel
+ extern uint8_t end[]; // Símbolo vindo do linker script, representa o final do kernel
 
 Bitmap bitmap;
 
 void pmm_init() {
-    bitmap.map = (uint32_t *) __end; //tem que alinhar aqui
+    bitmap.map = (uint32_t *) end; //tem que alinhar aqui
 
     uint32_t num_pages  = RAM_SIZE / PAGE_SIZE;
     bitmap.size = num_pages / 32;
@@ -18,7 +18,11 @@ void pmm_init() {
         bitmap.map[i] = 0xFFFFFFFF; //para evitar problemas de inicialização, todos os blocos são marcados como alocados inicialmente (bits setados para 1)
     }
 
-    uintptr_t free_mem_start = (uintptr_t) __end + bitmap.size * sizeof(uint32_t);
+    uintptr_t free_mem_start = (uintptr_t) end + bitmap.size * sizeof(uint32_t);
+    
+    if (free_mem_start % PAGE_SIZE != 0) {
+        free_mem_start = ((free_mem_start / PAGE_SIZE) + 1) * PAGE_SIZE;
+    }
 
     for(uintptr_t addr = free_mem_start; addr < RAM_END; addr += PAGE_SIZE) {
         pmm_free_page(addr); //marca os blocos de memória livre a partir do final do kernel até o final da RAM (bits setados para 0)
@@ -28,7 +32,7 @@ void pmm_init() {
 
 
 void pmm_free_page(uintptr_t addr) {
-    uint32_t page = addr / PAGE_SIZE;
+    uint32_t page = (addr - RAM_START) / PAGE_SIZE;
     uint32_t idx = page / 32;
     uint32_t bit = page % 32;
 
@@ -38,7 +42,7 @@ void pmm_free_page(uintptr_t addr) {
 }
 
 void pmm_alloc_page_at(uintptr_t addr) {
-    uint32_t page = addr / PAGE_SIZE;
+    uint32_t page = (addr - RAM_START) / PAGE_SIZE;
     uint32_t idx = page / 32;
     uint32_t bit = page % 32;
     
@@ -61,7 +65,7 @@ void* pmm_alloc_block() {
                     
                     // 3. Calcula o endereço físico real baseado no índice e no bit
                     uint32_t page_frame_number = (i * 32) + bit;
-                    uintptr_t phys_addr = page_frame_number * PAGE_SIZE;
+                    uintptr_t phys_addr = RAM_START + page_frame_number * PAGE_SIZE;
                     
                     return (void*)phys_addr; // Retorna o endereço físico do bloco alocado
                 }
@@ -69,4 +73,17 @@ void* pmm_alloc_block() {
         }
     }
     return NULL; // Sem memória física livre!
+}
+
+void serial_print_hex(uint32_t val) {
+    serial_puts("0x");
+    for (int i = 28; i >= 0; i -= 4) {
+        int digit = (val >> i) & 0xF;
+        if (digit < 10) {
+            serial_putc('0' + digit);
+        } else {
+            serial_putc('A' + (digit - 10));
+        }
+    }
+    serial_puts("\n");
 }

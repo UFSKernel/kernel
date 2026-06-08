@@ -8,3 +8,4 @@ build/
 # executável final
 *.elf
 *.img
+Makefile

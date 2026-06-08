@@ -8,7 +8,7 @@
 #define RAM_START        0x40000000  // Início da RAM no QEMU
 
 /* Tamanho da RAM - Vamos definir 128MB por padrão */
-#define RAM_SIZE         (128 * 1024 * 1024) 
+#define RAM_SIZE         (1 * 1024 * 1024) 
 
 #define RAM_END          (RAM_START + RAM_SIZE)
 
@@ -32,6 +32,10 @@ void pmm_init();
 void* pmm_alloc_block();
 
 // Libera um bloco previamente alocado
-void pmm_free_block(void* addr); 
+void pmm_free_page(uintptr_t addr); 
+
+void pmm_alloc_page_at(uintptr_t addr);
+
+void serial_print_hex(uint32_t val);
 #endif
 

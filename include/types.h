@@ -6,5 +6,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "serial.h"
+
+#define teste serial_puts("TESTE\n");
 
 #endif // TYPES_H
