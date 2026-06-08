@@ -3,7 +3,7 @@
 #ifndef PMM_H
 #define PMM_H
 
-#include <stdint.h>
+#include <types.h>
 
 #define RAM_START        0x40000000  // Início da RAM no QEMU
 

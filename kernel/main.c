@@ -1,11 +1,35 @@
-#include <serial.h>
+// kernel/main.c
+#include "serial.h"
+#include "types.h"
+#include "pmm.h"
+#include "VMM.h"
+#include "mem_API.h"
 
-// O linker manda o contador de programa para o binário daqui.
 void kmain(void) {
+    // 1. Inicializa a comunicação para podermos ver os testes
     serial_init();
-    serial_puts("Bem-vindo ao grupo de memoria!\n");
-	serial_puts("E aqui onde comeca o choro\n");
-    serial_puts("Executando em modo ARM bare-metal no QEMU.\n");
+    serial_puts("\n--- KERNEL BOOT: TESTE DE MEMORIA ---\n");
 
-    return;
+    // 2. Inicializa o gerenciador físico (onde seu bitmap será configurado)
+    serial_puts("[INIT] Inicializando PMM...\n");
+    pmm_init(); 
+
+    // 3. Teste Unitário da sua API (kmalloc / kfree)
+    serial_puts("[TEST] Testando kmalloc...\n");
+    
+    // Vamos pedir 8KB (deve exigir 2 páginas de 4KB)
+    uintptr_t ptr1 = kmalloc(8000); 
+    
+    serial_puts("[TEST] kmalloc alocou memoria com sucesso!\n");
+
+    // 4. Inicializa a Memória Virtual (MMU / Tabelas de Página)
+    serial_puts("[INIT] Inicializando VMM e ativando MMU...\n");
+    vmm_init();
+    
+    serial_puts("[SUCCESS] MMU ativa e rodando em modo mapeado!\n");
+
+    // Loop eterno para o kernel não morrer
+    while(1) {
+        // ...
+    }
 }

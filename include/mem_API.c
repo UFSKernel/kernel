@@ -17,7 +17,7 @@ uintptr_t kmalloc(uint32_t size){ //Função equivalente ao malloc.
     return addr;// retorna o endereço do primeiro bloco alocado
 }
 uint8_t kfree(uintptr_t addr){
-    pmm_free_page(addr);
+    pmm_free_block(addr);
     
     return 1;
 }
