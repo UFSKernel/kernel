@@ -28,9 +28,9 @@ printf_handler:
     pop {pc}
 
 abort_handler:
-    MOV r0, #0x84000000          @ Standard PSCI base
-    ORR r0, r0, #0x00000009      @ System Reset command ID (0x84000009)
-    HVC #0                       //hypervisor call
+    mov r0, #0x84000000          //Codigo base da especificação PSCI
+    orr r0, r0, #0x00000009      //System Reset command ID (0x84000009)
+    hvc #0                       //hypervisor call, pois estamos usando uma cpu virtual
 
 
 .global syscall_Handler

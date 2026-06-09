@@ -5,11 +5,11 @@
 void kmain(void) {
 
     setup_core_for_irq();
-    const char *c = "Testrando alterações\n";
+    const char *c = "Testando alterações\n";
     serial_init();
     int teste = 15;
     teste = printf(c);
-    if(teste == 1)
+    if(teste == 0)
         serial_puts("Executando em modo ARM bare-metal no QEMU.\n");
 
     while(teste < 100000000)

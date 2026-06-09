@@ -1,4 +1,4 @@
-// adicionar aq codigo da chamada de sistema, 
+// adicionar aqui codigo da chamada de sistema, 
 //a ordem deve ser igual a da tabela
 .equ PRINTF_CALL, 0
 .equ ABORT_CALL, 1
