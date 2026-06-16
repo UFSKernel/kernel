@@ -44,7 +44,7 @@ void vmm_unmap_page(page_directory_t *dir, uintptr_t virtual_addr);
 // Troca o diretório de páginas atual (usado na troca de contexto entre processos)
 void vmm_switch_directory(page_directory_t *dir);
 
-
+page_directory_t *vmm_get_kernel_directory(void); //pra teste na main
 #endif  
 
 
