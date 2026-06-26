@@ -1,7 +1,5 @@
 #include "mem_API.h"
 
-extern Bitmap bitmap; // Declaração do bitmap para uso nas funções da API
-
 // funções da API
 
 uintptr_t kmalloc(uint32_t size) {
@@ -14,7 +12,7 @@ uintptr_t kmalloc(uint32_t size) {
 uint8_t kfree(uintptr_t addr) {
     if (addr == 0) return 0;
     
-    // Como sabemos que tudo tem 4KB, só devolvemos pro PMM direto!
+    // Como sabemos que tudo tem 4KB, só devolvemos pro PMM direto
     pmm_free_page(addr); 
     return 1;
 }
