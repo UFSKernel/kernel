@@ -19,10 +19,12 @@ ARCH_FLAGS = -mcpu=cortex-a15 -mthumb
 
 CFLAGS += $(ARCH_FLAGS)
 
-ASM_SOURCES = $(wildcard arch/arm/boot/*.S)
+ASM_BOOT_SOURCES = $(wildcard arch/arm/boot/*.S)
+ASM_SOURCES = $(wildcard kernel/*.S)
 C_SOURCES = $(wildcard kernel/*.c)
 
-OBJ_FILES = $(patsubst arch/arm/boot/%.S, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
+OBJ_FILES = $(patsubst arch/arm/boot/%.S, $(BUILD_DIR)/%.o, $(ASM_BOOT_SOURCES))
+OBJ_FILES += $(patsubst kernel/%.S, $(BUILD_DIR)/%.o, $(ASM_SOURCES))
 OBJ_FILES += $(patsubst kernel/%.c, $(BUILD_DIR)/%.o, $(C_SOURCES))
 
 LINKER_SCRIPT = arch/arm/linker.ld
@@ -36,6 +38,11 @@ $(TARGET): $(OBJ_FILES)
 $(BUILD_DIR)/%.o: kernel/%.c
 	@mkdir -p $(@D)
 	@echo "CC	$<"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/%.o: kernel/%.S
+	@mkdir -p $(@D)
+	@echo "AS	$<"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/%.o: arch/arm/boot/%.S
