@@ -1,5 +1,4 @@
 #include <serial.h>
-#include <serial.h>
 #include <syscall.h>
 #include <interrupts_handler.h>
 #include "types.h"
