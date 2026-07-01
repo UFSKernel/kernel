@@ -1,9 +1,13 @@
 #include <serial.h>
+#include <serial.h>
 #include <syscall.h>
 #include <interrupts_handler.h>
 #include "types.h"
 #include "pmm.h"
 #include "VMM.h"
+#include <timer.h>
+#include <process.h>
+#include <scheduler.h>
 
 extern page_directory_t *vmm_get_kernel_directory(void);
 
