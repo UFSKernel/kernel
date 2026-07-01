@@ -4,13 +4,10 @@
 #include "types.h"
 #include "pmm.h"
 #include "VMM.h"
-#include <timer.h>
-#include <process.h>
-#include <scheduler.h>
 
 extern page_directory_t *vmm_get_kernel_directory(void);
 
-//Variável criada para realizar teste do abort e de processos sem conflito
+//variável para testes de abort e processos
 int tipo_do_teste = 0;
 
 void kmain(void) {
@@ -30,10 +27,12 @@ void kmain(void) {
     serial_puts("Rodando em modo de Memoria Virtual.\n");
     //Testando o Mapeamento de Página
     serial_puts("\n[3] Testando mapeamento (Virtual -> Fisico)...\n");
+    // Pegamos o diretório do kernel e escolhemos um endereço virtual qualquer
     page_directory_t *kernel_dir = vmm_get_kernel_directory();
     uintptr_t virtual_addr = 0xCAFE0000; 
     vmm_map_page(kernel_dir, virtual_addr, (uintptr_t)phys_page, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE);
     serial_puts("Escrevendo e lendo do endereco virtual 0xCAFE0000\n");
+    // Criamos um ponteiro para a memória virtual, onde vamos escrever e tentar ler pra ver se deu certo
     volatile char *mem_teste = (volatile char *)virtual_addr;
     mem_teste[0] = 'V';
     mem_teste[1] = 'M';
@@ -47,11 +46,12 @@ void kmain(void) {
     serial_puts("Resultado da leitura: ");
     serial_puts((const char *)mem_teste);
     // FIM DOS TESTES DO GERENCIADOR DE MEMORIA //
-
+    
     int teste = 15;
     teste = printf(c);
     if(teste == 10)
         serial_puts("Executando em modo ARM bare-metal no QEMU.\n");
+
     while(teste < 100000000)
     {
         teste++;
@@ -64,16 +64,16 @@ void kmain(void) {
     else if (tipo_do_teste == 1) {
         serial_puts("Bem-vindo ao UFSKernel!\n");
         serial_puts("Executando em modo ARM bare-metal no QEMU.\n");
-
+ 
         serial_puts("Configurando GIC...\n");
         init_gic();
-
+ 
         serial_puts("Ligando interrupções...\n");
         enable_cpu_interrupts();
-
+ 
         serial_puts("Ativando Timer...\n");
         init_timer();
-
+ 
         serial_puts("Kernel rodando na main...\n");
         first_process(arqinicio);
         for(volatile int i = 0; i < 50000000; i++);
