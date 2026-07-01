@@ -4,8 +4,14 @@
 #include "types.h"
 #include "pmm.h"
 #include "VMM.h"
+#include <timer.h>
+#include <process.h>
+#include <scheduler.h>
 
 extern page_directory_t *vmm_get_kernel_directory(void);
+
+//variável para testes de abort e processos
+int tipo_do_teste = 0;
 
 void kmain(void) {
     setup_core_for_irq();
@@ -54,7 +60,26 @@ void kmain(void) {
         teste++;
     }
 
-    abort();
-
-    return;
+    if (tipo_do_teste == 0) {
+        abort();
+        return;
+    }
+    else if (tipo_do_teste == 1) {
+        serial_puts("Bem-vindo ao UFSKernel!\n");
+        serial_puts("Executando em modo ARM bare-metal no QEMU.\n");
+ 
+        serial_puts("Configurando GIC...\n");
+        init_gic();
+ 
+        serial_puts("Ligando interrupções...\n");
+        enable_cpu_interrupts();
+ 
+        serial_puts("Ativando Timer...\n");
+        init_timer();
+ 
+        serial_puts("Kernel rodando na main...\n");
+        first_process(arqinicio);
+        for(volatile int i = 0; i < 50000000; i++);
+        return;
+    }
 }

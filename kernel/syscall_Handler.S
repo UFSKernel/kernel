@@ -17,21 +17,43 @@
 Syscall_Table:
     .word printf_handler
     .word abort_handler
+    .word fork_handler
+    .word exec_handler
+    .word exit_handler
 
 
 
 printf_handler:
-
     mov r0,r1
     push {lr}
     bl serial_puts
     mov r0, #10
     pop {pc}
 
+
 abort_handler:
     mov r0, #0x84000000          //Codigo base da especificação PSCI
     orr r0, r0, #0x00000009      //System Reset command ID (0x84000009)
     hvc #0                       //hypervisor call, pois estamos usando uma cpu virtual
+
+
+fork_handler:
+    push {lr}
+    bl sys_fork
+    pop {pc}
+
+
+exec_handler:
+    mov r0,r1
+    push {lr}
+    bl sys_exec
+    pop {pc}
+
+
+exit_handler:
+    push {lr}
+    bl sys_exit
+    pop {pc}
 
 
 .global syscall_Handler
