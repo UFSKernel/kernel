@@ -8,7 +8,7 @@
 
 
 #define MAX_SOCKETS 16
-
+#define HASHTABLE_SIZE 32 //tamanho adequado para evitar divisoes e garantir bom espalhamento, caso ocupe muito troque para 31 ou 23
 //HEADERS DOS PACOTES
 
 

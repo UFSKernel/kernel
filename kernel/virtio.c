@@ -9,7 +9,7 @@
 #include <protocol_headers.h>
 
 
-volatile struct socket tabela_sockets[MAX_SOCKETS];
+volatile struct socket tabela_sockets[HASHTABLE_SIZE];
 
 
 
@@ -86,6 +86,10 @@ struct virtqueue_info {
 // Filas globais (0 = RX, 1 = TX)
 struct virtqueue_info virtqueues[2];
 
+static inline uint32_t socket_hash(uint16_t port) {
+    // Multiplicação por número mágico de Fibonnaci para espalhar bem os bits
+    return (port * 2654435761U) & (HASHTABLE_SIZE - 1);
+}
 
 void virtio_send_arp_reply(uint8_t *target_mac, uint8_t *target_ip) {
     struct virtqueue_info *tx = &virtqueues[1];
@@ -171,21 +175,18 @@ void virtio_net_irq_handler(void) {
                     int32_t ip_hdr_len = (ip->ihl_version & 0x0F) * 4;
                     struct udp_hdr *udp = (struct udp_hdr *) ((uint8_t*)ip + ip_hdr_len);
 
-                    //uint16_t porta_destino = ntohs(udp->dest_port);
+                    uint16_t porta_destino = ntohs(udp->dest_port);
                     uint8_t *payload = (uint8_t*)udp + sizeof(struct udp_hdr);
                     int32_t payload_len = ntohs(udp->len) - sizeof(struct udp_hdr);
-
-                    for (int32_t i = 0; i < MAX_SOCKETS; i++){
-                        if(tabela_sockets[i].em_uso){
-                            for (int32_t j = tabela_sockets[i].rx_tamanho, k = 0; k < payload_len && j < 4096; j++, k++) tabela_sockets[i].rx_buffer[j] = payload[k];
-                            tabela_sockets[i].rx_tamanho += payload_len;
-
+                    uint32_t id = socket_hash(porta_destino);
+                    if(tabela_sockets[id].em_uso){
+                        for (int32_t j = tabela_sockets[id].rx_tamanho, k = 0; k < payload_len && j < 4096; j++, k++) 
+                            tabela_sockets[id].rx_buffer[j] = payload[k];
+                        tabela_sockets[id].rx_tamanho += payload_len;
                             //acordar o processo
-                            if (tabela_sockets[i].processo_bloqueado) {
-                                tabela_sockets[i].processo_bloqueado->state = READY;
-                                tabela_sockets[i].processo_bloqueado = NULL;
-                            }
-                            break;
+                        if (tabela_sockets[id].processo_bloqueado) {
+                            tabela_sockets[id].processo_bloqueado->state = READY;
+                            tabela_sockets[id].processo_bloqueado = NULL;
                         }
                     }
                 }
@@ -348,13 +349,15 @@ int16_t virtio_net_init(void){
 
 
     //Após inicializar a rede, inicializa os sockets como 0
-    for (uint32_t i = 0; i < MAX_SOCKETS; i++)
+    for (uint32_t i = 0; i < HASHTABLE_SIZE; i++)
         tabela_sockets[i].em_uso = 0;
 
 
     //para testes, abre um unico socket de id 0 porta 5555
     sys_socket(5555);
-
+    for(int i =0; i<MAX_SOCKETS-1;i++){
+        sys_socket(5000+i);
+    }
 
     //ARP para a rede
     uint8_t mac_broadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -378,27 +381,29 @@ int16_t virtio_net_init(void){
 
 
 int32_t sys_socket(uint16_t porta){
-    for (uint32_t i = 0; i < MAX_SOCKETS; i++)
-        if (!tabela_sockets[i].em_uso || tabela_sockets[i].porta_local == porta){
-            tabela_sockets[i].em_uso = 1;
-            tabela_sockets[i].porta_local = porta;
-            tabela_sockets[i].rx_tamanho = 0;
-            tabela_sockets[i].processo_bloqueado = 0;
-            return i; 
+
+    uint32_t id = socket_hash(porta);
+    
+    if (!tabela_sockets[id].em_uso || tabela_sockets[id].porta_local == porta){
+            tabela_sockets[id].em_uso = 1;
+            tabela_sockets[id].porta_local = porta;
+            tabela_sockets[id].rx_tamanho = 0;
+            tabela_sockets[id].processo_bloqueado = 0;
+            return id; 
         }
     return -1;
 }
 
 
 extern struct process *current;
-uint32_t sys_recv(int32_t sock_id, void *buffer_user, uint32_t tam_max){
+uint32_t sys_recv(int32_t port, void *buffer_user, uint32_t tam_max){
     if (virtiommio_on == 0)
         return 0;
     
 
-
+    volatile uint32_t id = socket_hash(port);
     volatile uint32_t *mmio_interrupt = (VIRTIO0_BASE + 0x060);
-    volatile struct socket *sock = &tabela_sockets[sock_id];
+    volatile struct socket *sock = &tabela_sockets[id];
 
     if (mmio_interrupt[0] & 1){
         virtio_net_irq_handler();

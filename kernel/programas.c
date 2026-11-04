@@ -13,7 +13,7 @@ program program_table[] = {
     {"exit", "Desliga o sistema.", prog_exit},
     {"help", "Imprime os comandos do sistema.", prog_help},
     {"evento", "Imprime o visual de evento do UFSKernel.", prog_evento},
-    {"rede", "teste de rede, mande um pacote para a porta 5555.", socket_listen},
+    {"rede", "teste de rede, mande um pacote para a porta 5555, passe a porta como argumento.", socket_listen},
     {0, 0, 0}
 };
 
@@ -31,15 +31,16 @@ void prog_init_idle(int argc, char** argv) {
 
 
 void socket_listen(int argc, char** argv){
-    (void)argc; (void)argv;
-
+    (void)argv;
+     
+    if(argc>1){
 
     char m[65];
-
+    
 
     volatile unsigned bytes_lidos = 0;
-
-    bytes_lidos = recv(0, m, 40);
+    int id = atoi(argv[argc-1]);
+    bytes_lidos = recv(id, m, 40);
 
     if(bytes_lidos > 0){
 
@@ -51,6 +52,7 @@ void socket_listen(int argc, char** argv){
     }
     else
         printf("Chegou nada.\n");
+    }
 
     exit();
 }
