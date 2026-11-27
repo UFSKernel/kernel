@@ -26,7 +26,6 @@ volatile struct socket tabela_sockets[HASHTABLE_SIZE];
 #define VIRTIO_QUEUE_NUM            0x00E // 0x038 bytes
 #define VIRTIO_QUEUE_ALIGN          0x00F // 0x03C bytes
 #define VIRTIO_QUEUE_PFN            0x010 // 0x040 bytes
-#define VIRTIO_QUEUE_READY          0x011 // 0x044 bytes
 #define VIRTIO_QUEUE_NOTIFY         0x014 // 0x050 bytes
 #define VIRTIO_INTERRUPT_STATUS     0x018 // 0x060 bytes P.S: na documentação oficial esse valor esta como 0x60 por algum motivo
 #define VIRTIO_INTERRUPT_ACK        0x019 // 0x064 bytes
@@ -35,9 +34,7 @@ volatile struct socket tabela_sockets[HASHTABLE_SIZE];
 /*Flags de Status do Virtio */
 #define VIRTIO_STATUS_ACKNOWLEDGE 1
 #define VIRTIO_STATUS_DRIVER      2
-#define VIRTIO_STATUS_FEATURES_OK 8
 #define VIRTIO_STATUS_DRIVER_OK   4
-#define VIRTIO_STATUS_FAILED      128
 
 //IRQ
 #define VIRTIO_NET_IRQ            48 // SPI = IRQ - 32
@@ -144,9 +141,6 @@ void virtio_send_arp_reply(uint8_t *target_mac, uint8_t *target_ip) {
 Função interna para tratar a interrupção vinda da placa de rede.
 */
 void virtio_net_irq_handler(void) {
-
-    
-
     volatile uint32_t *mmio = VIRTIO0_BASE;
 
     //Lê o registrador INTERRUPT_STATUS
@@ -422,6 +416,12 @@ uint32_t sys_recv(int32_t port, void *buffer_user, uint32_t tam_max){
 
 
 
+static inline uint16_t htons_local(uint16_t val) {
+    return (val << 8) | (val >> 8);
+}
+
+
+
 int32_t sys_send(int32_t sock_id, void *buffer_user, uint32_t len) {
     if (virtiommio_on == 0 || sock_id < 0 || sock_id >= MAX_SOCKETS || !tabela_sockets[sock_id].em_uso) {
         return -1;
@@ -439,37 +439,33 @@ int32_t sys_send(int32_t sock_id, void *buffer_user, uint32_t len) {
     tx_buf[10] = 0xFF; tx_buf[11] = 0xFF; tx_buf[12] = 0xFF;
     tx_buf[13] = 0xFF; tx_buf[14] = 0xFF; tx_buf[15] = 0xFF;
     
-    // MAC Origem: Padrão do QEMU (Offset 16 a 21)
+
     tx_buf[16] = 0x52; tx_buf[17] = 0x54; tx_buf[18] = 0x00;
     tx_buf[19] = 0x12; tx_buf[20] = 0x34; tx_buf[21] = 0x56;
     
-    // EtherType: IPv4 - 0x0800 (Offset 22 e 23)
+    
     tx_buf[22] = 0x08;
     tx_buf[23] = 0x00;
 
-    // 3. Copia a mensagem do usuário LOGO APÓS o cabeçalho Ethernet (Offset 24)
+    
     char *origem = (char *) buffer_user;
     for(uint32_t i = 0; i < len; i++) {
         tx_buf[24 + i] = origem[i];
     }
 
-    // O tamanho do pacote agora é: 10 (Virtio) + 14 (Ethernet) + Tamanho do Texto
     
-
-    // 3. Configura o descritor
     tx->desc[desc_id].addr = (uint64_t)(uintptr_t)tx_buf;
     tx->desc[desc_id].len = 10 + 14 + len;
-    tx->desc[desc_id].flags = 0; // 0 = Placa apenas LÊ (Read-Only para o dispositivo)
+    tx->desc[desc_id].flags = 0; // 0 = read only
     tx->desc[desc_id].next = 0;
 
-    // 4. Adiciona ao anel Available
+    
     tx->avail->ring[desc_id] = desc_id;
     tx->avail_idx++;
     
-    // 5. Atualiza o índice visível para a placa (deve ser a última coisa antes do notify)
+    
     tx->avail->idx = tx->avail_idx;
 
-    // 6. "Chuta" a placa para ela ler os dados
     volatile uint32_t *mmio = VIRTIO0_BASE;
     mmio[VIRTIO_QUEUE_NOTIFY] = 1; // Avisa a fila 1 (TX)
 

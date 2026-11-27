@@ -13,7 +13,8 @@ program program_table[] = {
     {"exit", "Desliga o sistema.", prog_exit},
     {"help", "Imprime os comandos do sistema.", prog_help},
     {"evento", "Imprime o visual de evento do UFSKernel.", prog_evento},
-    {"rede", "teste de rede, mande um pacote para a porta 5555, passe a porta como argumento.", socket_listen},
+    {"rede1", "teste de rede, use um numero de porta como argumento e envie algo para ela.", socket_listen},
+    {"rede2", "teste de rede, envia uma mensagem padrão atravez da rede para o endereço local.", socket_send},
     {0, 0, 0}
 };
 
@@ -53,6 +54,16 @@ void socket_listen(int argc, char** argv){
     else
         printf("Chegou nada.\n");
     }
+
+    exit();
+}
+
+void socket_send(int argc, char** argv){
+    (void)argc; (void)argv;
+
+    char m[] = "Mensagem enviada do UFSKernel!";
+
+    send(0, m, sizeof(m));
 
     exit();
 }
