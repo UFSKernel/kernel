@@ -2,12 +2,13 @@
 .global vector_table
 .global irq_handler
 .global setup_core_for_irq
+.global print_undefined_pc
 
 .extern kputs 
 
-
 .type irq_handler, %function
 .type setup_core_for_irq, %function
+
 
 .align 5			// (32 bits)     
 vector_table:			// offset |  interrupcao  |  modo de execucao 
@@ -68,6 +69,7 @@ setup_core_for_irq:
 undefined_handler:
     ldr r0, =msg_undef
     bl kputs
+    sub lr, lr, #4
     b .                     
 
 data_abort_handler:

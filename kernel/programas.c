@@ -2,6 +2,7 @@
 #include <syscall.h>
 #include <stringutils.h>
 #include <stdio.h>
+#include <virtio.h>
 
 program program_table[] = {
     {"programa1", "Imprime texto de teste várias vezes na tela.", programa1},
@@ -12,6 +13,8 @@ program program_table[] = {
     {"exit", "Desliga o sistema.", prog_exit},
     {"help", "Imprime os comandos do sistema.", prog_help},
     {"evento", "Imprime o visual de evento do UFSKernel.", prog_evento},
+    {"rede1", "teste de rede, use um numero de porta como argumento e envie algo para ela.", socket_listen},
+    {"rede2", "teste de rede, envia uma mensagem padrão atravez da rede para o endereço local.", socket_send},
     {0, 0, 0}
 };
 
@@ -26,6 +29,48 @@ void prog_init_idle(int argc, char** argv) {
         // TODO: wait for interrupt, por enquanto CPU fica em 100% aqui
     }
 }
+
+
+void socket_listen(int argc, char** argv){
+    (void)argv;
+     
+    if(argc>1){
+
+    char m[65];
+    
+
+    volatile unsigned bytes_lidos = 0;
+    int id = atoi(argv[argc-1]);
+    bytes_lidos = recv(id, m, 40);
+
+    if(bytes_lidos > 0){
+
+            printf("Chegou algo.\n");
+
+            m[bytes_lidos] = 0;
+            puts(m);
+            
+    }
+    else
+        printf("Chegou nada.\n");
+    }
+
+    exit();
+}
+
+void socket_send(int argc, char** argv){
+    (void)argc; (void)argv;
+
+    char m[] = "Mensagem enviada do UFSKernel!";
+
+    send(0, m, sizeof(m));
+
+    exit();
+}
+
+
+
+
 
 void programa1(int argc, char** argv) {
     (void)argc; (void)argv;

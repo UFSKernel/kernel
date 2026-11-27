@@ -21,4 +21,6 @@ int kstdio_has_data(void);
 int sys_write(char* buffer, unsigned max_len);
 int sys_read(char* buffer, unsigned max_len);
 
+
+
 #endif // KSTDIO_H

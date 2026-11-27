@@ -14,8 +14,12 @@
   ((volatile uint32_t *)(GICD_BASE + 0x100)) // Habilitar IRQ
 #define GICD_ICENABLER                                                         \
   ((volatile uint32_t *)(GICD_BASE + 0x180)) // Desabilitar IRQ
+#define GICD_ITARGETSR_BASE                                                    \
+  ((volatile uint32_t *)(GICD_BASE + 0x800)) 
 #define GICD_ICFGR                                                             \
   ((volatile uint32_t *)(GICD_BASE + 0xC00)) // Configuração (Edge/Level)
+                                                    
+
 
 // Registradores
 #define GICD_CTLR (*(volatile uint32_t *)(GICD_BASE + 0x000))

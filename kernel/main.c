@@ -8,6 +8,7 @@
 #include <scheduler.h>
 #include <programas.h>
 #include <teste_io.h>
+#include <virtio.h>
 
 extern page_directory_t *vmm_get_kernel_directory(void);
 
@@ -16,6 +17,7 @@ void kmain(void) {
     // Inicialização do GIC e interrupção por timer
     kputs("Configurando GIC e Timer...\n");
     init_gic();
+
     init_timer();
 
     kstdio_init();
@@ -52,6 +54,21 @@ void kmain(void) {
     kputs((const char *)mem_teste);
     // FIM DOS TESTES DO GERENCIADOR DE MEMORIA //
 
+
+    // TESTES DA PLACA DE REDE //
+    kputs("Iniciando placa de rede.\n");
+    int16_t virtio = virtio_net_init();
+    if(virtio == 1){
+        kputs("Placa de rede iniciada.\n");
+    }
+    
+    else
+        kputs("Placa de rede não encontrada, inicie com make run-net!\n");
+    
+    // FIM DOS TESTES DA PLACA DE REDE //
+
+
+
     kputs("Executando em modo ARM bare-metal no QEMU.\n");
     kputs("Iniciando shell...\n");
     kputs("Tente digitar help\n\n\n");
@@ -60,3 +77,5 @@ void kmain(void) {
 
     return;
 }
+
+

@@ -7,7 +7,8 @@ OBJCOPY = $(CROSS_PREFIX)objcopy
 
 BUILD_DIR = build
 TARGET = kernel.elf
-
+PORTS := $(shell seq 5000 5015)
+HOSTFWD := $(shell echo $(PORTS) | sed 's/\([0-9]*\)/hostfwd=udp::\1-:\1/g' | tr ' ' ',')
 # -nostdlib: Não linke com a biblioteca padrão do C. Nós não temos um SO!
 # -ffreestanding: O código não depende de um ambiente padrão.
 # -Wall: Habilita todos os warnings. -Wextra: Habilita mais warnings.
@@ -60,4 +61,11 @@ run: all
 debug: all
 	@qemu-system-arm -M virt -cpu cortex-a15 -nographic -kernel $(TARGET) -s -S
 
-.PHONY: all clean run debug
+run-net: all
+	@qemu-system-arm -M virt -cpu cortex-a15 -nographic -kernel $(TARGET) -netdev user,id=net0,hostfwd=udp:0.0.0.0:5555-:5555,$(HOSTFWD) -device virtio-net-device,netdev=net0 -object filter-dump,id=net0,netdev=net0,file=qemu-trafego.pcap
+
+debug-net: all
+	@qemu-system-arm -M virt -cpu cortex-a15 -nographic -kernel $(TARGET) -netdev user,id=net0,hostfwd=udp:0.0.0.0:5555-:5555,$(HOSTFWD) -device virtio-net-device,netdev=net0 -s -S
+
+
+.PHONY: all clean run debug run-net debug-net

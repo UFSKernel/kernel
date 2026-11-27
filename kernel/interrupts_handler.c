@@ -17,7 +17,12 @@ int register_interrupt_handler(uint32_t irq, isr_t handler) {
 void gic_enable_interrupt(uint32_t irq) {
   if (irq >= MAX_INTERRUPTS) return; // ID inválido
 
-  enable_bit(GICD_ISENABLER, irq); // Ativa o bit, liga a interrupção
+  volatile uint32_t* isenabler = (volatile uint32_t*) GICD_ISENABLER;
+  isenabler[irq / 32] |= (1 << (irq % 32));
+  if (irq >= 32) {
+        volatile uint8_t* itargetsr = (volatile uint8_t*) GICD_ITARGETSR_BASE; 
+        itargetsr[irq] = 1; // 1 = CPU 0
+    }
 }
 
 void gic_disable_interrupt(uint32_t irq) {
@@ -28,8 +33,10 @@ void gic_disable_interrupt(uint32_t irq) {
 
 void init_gic(void) {
   GICD_CTLR = 1; // Ativa distribuidor global de interrupções
+ 
+  GICC_PMR = 0xFF; // Tratar interrupções de qualquer prioridade
+
   GICC_CTLR = 1; // Ativa interface de interrupções da CPU
-  GICC_PMR = BIT_MASK(8); // Tratar interrupções de qualquer prioridade
 }
 
 void gic_config_interrupt(uint32_t irq, int edge_triggered) {
@@ -48,13 +55,16 @@ void gic_config_interrupt(uint32_t irq, int edge_triggered) {
 void enable_cpu_interrupts(void) { __asm__ volatile("cpsie i"); }
 
 void irq_dispatcher_c(void) {
-  uint32_t irq_id = GICC_IAR & BIT_MASK(10); // Pega ID da interrupção do registrador
+  uint32_t irq_id = GICC_IAR & 0x3FF; // Pega ID da interrupção do registrador
   current_irq = irq_id;
 
-  GICC_EOIR = irq_id; // Avisa que está sendo tratada
+ 
 
   if (irq_id < MAX_INTERRUPTS && interrupt_handlers[irq_id])
     interrupt_handlers[irq_id](); // Trata, se possível
+
+  GICC_EOIR = irq_id; // Mudança: isso aqui ficou pra baixo, pois ela não significa
+  //''estamos tratando'', e sim ''ja tratamos''
 }
 
 void irq_end_current(void){

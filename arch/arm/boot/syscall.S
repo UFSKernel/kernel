@@ -7,6 +7,9 @@
 .equ SYS_READ, 4
 .equ SYS_WRITE, 5
 .equ SYS_WAITPID, 6
+.equ SYS_SOCKET, 7
+.equ SYS_RECV, 8
+.equ SYS_SEND, 9
 .text
 
 
@@ -69,6 +72,30 @@ write:
 waitpid:
     push {r7, lr}
     mov r7, #SYS_WAITPID
+    SVC #0
+    pop {r7, pc}
+
+.global socket
+.type socket, %function
+socket:
+    push {r7, lr}
+    mov r7, #SYS_SOCKET
+    SVC #0
+    pop {r7, pc} 
+
+.global recv
+.type recv, %function
+recv:
+    push {r7, lr}
+    mov r7, #SYS_RECV
+    SVC #0
+    pop {r7, pc}
+
+.global send
+.type send, %function
+send:
+    push {r7, lr}
+    mov r7, #SYS_SEND
     SVC #0
     pop {r7, pc}
 

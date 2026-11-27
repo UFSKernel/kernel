@@ -21,6 +21,9 @@ Syscall_Table:
     .word read_handler
     .word write_handler
     .word waitpid_handler
+    .word socket_handler
+    .word recv_handler
+    .word send_handler
 
 
 abort_handler:
@@ -58,13 +61,29 @@ waitpid_handler:
     bl sys_waitpid
     pop {pc}
 
+socket_handler:
+    push {lr}
+    bl sys_socket
+    pop {pc}
+
+recv_handler:
+    push {lr}
+    bl sys_recv
+    pop {pc}
+
+send_handler:
+    push {lr}
+    bl sys_send
+    pop {pc}
+
+
 .global syscall_Handler
 .type syscall_Handler, %function
 .extern serial_puts
 
 .align 2
 syscall_Handler:
-    cmp r7, #7                     @ 7 é a quantidade de syscalls (0 a 6)
+    cmp r7, #10                     @ 10 é a quantidade de syscalls (0 a 9)
     bhs syscall_end                @ Branch se Higher or Same para o fim
 
     ldr r3, =Syscall_Table         @ carrega a tabela

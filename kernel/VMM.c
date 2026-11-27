@@ -21,8 +21,10 @@ void vmm_init(void) {
     vmm_map_page(kernel_directory, UART0_ADDRESS, UART0_ADDRESS, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE | VMM_PAGE_NOCACHE);
     vmm_map_page(kernel_directory, GICD_BASE, GICD_BASE, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE | VMM_PAGE_NOCACHE);
     vmm_map_page(kernel_directory, GICC_BASE, GICC_BASE, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE | VMM_PAGE_NOCACHE);
-
-
+    
+    vmm_map_page(kernel_directory, 0x0A003e00,  0x0A003e00, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE | VMM_PAGE_NOCACHE); // Temporario, mas precisa liberar para a memoria
+    
+    
     //Mapeando a RAM onde o kernel reside
     for (uintptr_t addr = RAM_START; addr < RAM_END; addr += PAGE_SIZE) {
         vmm_map_page(kernel_directory, addr, addr, VMM_PAGE_PRESENT | VMM_PAGE_WRITABLE);

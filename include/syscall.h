@@ -17,4 +17,8 @@ int waitpid(int pid);
 int read(char* buffer, unsigned max_len);
 int write(char* buffer, unsigned max_len);
 
+int socket(unsigned short porta);
+unsigned recv(int sock_id, void *buffer_user, unsigned tam_max);
+int send(int sock_id, void *buffer_user, unsigned len);
+
 #endif // SYSCALL_H
